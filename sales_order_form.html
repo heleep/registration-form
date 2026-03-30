@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Internal Sales Order — VER 7.0</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root {
+    --navy: #0a1628;
+    --blue: #1a3a6b;
+    --accent: #c8912a;
+    --gold: #e8a82e;
+    --light: #f5f7fb;
+    --white: #ffffff;
+    --border: #d0d9e8;
+    --text: #1a2640;
+    --muted: #6b7a94;
+    --red: #c0392b;
+    --green: #27ae60;
+    --section-bg: #eef2f9;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: linear-gradient(135deg, #0a1628 0%, #1a3a6b 50%, #0d2040 100%);
+    min-height: 100vh;
+    padding: 40px 20px;
+    color: var(--text);
+  }
+  .page-wrap { max-width: 1000px; margin: 0 auto; }
+
+  /* Header */
+  .form-header {
+    background: var(--navy);
+    border-radius: 16px 16px 0 0;
+    padding: 36px 40px 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .form-header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent), var(--gold), var(--accent));
+  }
+  .company-badge { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+  .badge-icon {
+    width: 48px; height: 48px;
+    background: linear-gradient(135deg, var(--accent), var(--gold));
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  .badge-text h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; font-weight: 700; color: var(--white);
+  }
+  .badge-text p {
+    font-size: 12px; color: var(--gold); font-weight: 500;
+    letter-spacing: 1.5px; text-transform: uppercase; margin-top: 2px;
+  }
+  .header-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 16px 0; }
+  .header-meta { display: flex; gap: 24px; flex-wrap: wrap; }
+  .meta-pill {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px; padding: 5px 14px;
+    font-size: 12px; color: rgba(255,255,255,0.65); font-weight: 500;
+  }
+  .meta-pill span { color: var(--gold); }
+
+  /* Body */
+  .form-body { background: var(--white); padding: 36px 40px; }
+  .section { margin-bottom: 28px; }
+  .section-title {
+    font-size: 10px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--blue);
+    padding: 8px 14px;
+    background: var(--section-bg);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+    margin-bottom: 20px;
+  }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 24px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px 24px; }
+  .col-span-2 { grid-column: span 2; }
+
+  /* Field */
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label {
+    font-size: 11.5px; font-weight: 600; color: var(--muted);
+    letter-spacing: 0.3px; text-transform: uppercase;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .field label .req { color: var(--red); font-size: 13px; line-height: 1; }
+  .field input, .field select, .field textarea {
+    width: 100%; padding: 11px 14px;
+    border: 1.5px solid var(--border); border-radius: 8px;
+    font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text);
+    background: var(--white); transition: border-color 0.2s, box-shadow 0.2s;
+    appearance: none; -webkit-appearance: none;
+  }
+  .field select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7a94' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 14px center; padding-right: 38px; cursor: pointer;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,58,107,0.1);
+  }
+  .field input.error, .field select.error { border-color: var(--red); }
+  .error-msg { font-size: 11px; color: var(--red); display: none; margin-top: 2px; }
+  .field.has-error .error-msg { display: block; }
+  .form-divider { height: 1px; background: var(--border); margin: 4px 0 24px; }
+
+  /* Product Table */
+  .product-table-wrap { overflow-x: auto; border-radius: 10px; border: 1.5px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; min-width: 750px; }
+  thead tr { background: var(--navy); }
+  thead th {
+    padding: 12px 10px; font-size: 11px; font-weight: 600;
+    color: rgba(255,255,255,0.85); text-align: left; letter-spacing: 0.5px; white-space: nowrap;
+  }
+  thead th:first-child { width: 46px; text-align: center; }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+  tbody tr:hover { background: #f8faff; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody td { padding: 7px 8px; vertical-align: middle; }
+  tbody td:first-child { text-align: center; font-size: 13px; font-weight: 600; color: var(--muted); }
+  tbody td input, tbody td select {
+    width: 100%; border: 1.5px solid transparent; border-radius: 6px;
+    padding: 7px 8px; font-family: 'DM Sans', sans-serif; font-size: 13px;
+    background: transparent; color: var(--text); transition: border-color 0.15s, background 0.15s;
+  }
+  tbody td input:focus, tbody td select:focus {
+    outline: none; border-color: var(--blue); background: var(--white);
+    box-shadow: 0 0 0 2px rgba(26,58,107,0.08);
+  }
+  tbody td select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b7a94' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 6px center; padding-right: 20px;
+    appearance: none; -webkit-appearance: none; cursor: pointer;
+  }
+  .total-row { background: var(--section-bg) !important; }
+  .total-row td { font-weight: 600; font-size: 13px; color: var(--navy); padding: 10px 12px; }
+  .add-row-btn {
+    margin-top: 12px; display: flex; align-items: center; gap: 6px;
+    background: none; border: 1.5px dashed var(--border); border-radius: 8px;
+    padding: 9px 16px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--muted);
+    cursor: pointer; width: 100%; justify-content: center; transition: all 0.2s;
+  }
+  .add-row-btn:hover { border-color: var(--blue); color: var(--blue); background: rgba(26,58,107,0.04); }
+
+  /* Footer */
+  .form-footer {
+    background: var(--section-bg); border-top: 1px solid var(--border);
+    padding: 28px 40px; display: flex; align-items: center;
+    justify-content: space-between; border-radius: 0 0 16px 16px;
+    gap: 16px; flex-wrap: wrap;
+  }
+  .footer-note { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .footer-note::before { content: '⚠'; font-size: 14px; }
+  .submit-btn {
+    background: linear-gradient(135deg, var(--blue), #0d2040);
+    color: white; border: none; padding: 14px 36px; border-radius: 10px;
+    font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600;
+    cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;
+    letter-spacing: 0.3px; display: flex; align-items: center; gap: 8px;
+  }
+  .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(26,58,107,0.35); }
+
+  /* Success */
+  .success-overlay {
+    display: none; background: var(--white); border-radius: 0 0 16px 16px;
+    padding: 60px 40px; text-align: center; border-top: 1px solid var(--border);
+  }
+  .success-overlay.show { display: block; }
+  .success-icon {
+    width: 72px; height: 72px;
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 32px; margin: 0 auto 20px;
+    animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes popIn {
+    from { transform: scale(0); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .success-title { font-family: 'Playfair Display', serif; font-size: 26px; color: var(--navy); margin-bottom: 8px; }
+  .success-sub { color: var(--muted); font-size: 14px; margin-bottom: 32px; max-width: 400px; margin-left: auto; margin-right: auto; line-height: 1.6; }
+  .download-btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--gold));
+    color: var(--navy); border: none; padding: 15px 40px; border-radius: 10px;
+    font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 700;
+    cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .download-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(200,145,42,0.4); }
+  .new-order-btn {
+    display: inline-flex; align-items: center; gap: 8px; background: none;
+    border: 1.5px solid var(--border); color: var(--muted); padding: 13px 28px;
+    border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 14px;
+    font-weight: 500; cursor: pointer; margin-top: 14px; transition: all 0.2s;
+  }
+  .new-order-btn:hover { border-color: var(--blue); color: var(--blue); }
+
+  @media (max-width: 640px) {
+    .form-body, .form-header, .form-footer { padding: 24px 20px; }
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .col-span-2 { grid-column: span 1; }
+  }
+</style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <div class="form-header">
+    <div class="company-badge">
+      <div class="badge-icon">📋</div>
+      <div class="badge-text">
+        <h1>Internal Sales Order</h1>
+        <p>Version 7.0 &nbsp;·&nbsp; Apr 2024</p>
+      </div>
+    </div>
+    <div class="header-divider"></div>
+    <div class="header-meta">
+      <div class="meta-pill">Form ID: <span>ISO-2024</span></div>
+      <div class="meta-pill">Fields marked <span>*</span> are mandatory</div>
+      <div class="meta-pill">Date: <span id="todayDate"></span></div>
+    </div>
+  </div>
+
+  <form id="soForm" novalidate>
+  <div class="form-body">
+
+    <!-- ORDER INFORMATION -->
+    <div class="section">
+      <div class="section-title">Order Information</div>
+      <div class="grid-2">
+        <div class="field">
+          <label>Account Head <span class="req">*</span></label>
+          <select id="accountHead" required>
+            <option value="">— Select Account Head —</option>
+            <option>Aakash Mehta</option><option>Abha Shah</option><option>Alpesh Kumar</option>
+            <option>Amit Thakur</option><option>Ashwini Mahadik</option><option>Dhairya Trivedi</option>
+            <option>Dharmendra Pandya</option><option>Dharti Parmar</option><option>Harish Shendage</option>
+            <option>Hema Raikar</option><option>Hemandra Tomar</option><option>Jayen Rachh</option>
+            <option>Jinal Parekh</option><option>Jyoti Rajput</option><option>Kaushal Patel</option>
+            <option>Kaushik Soni</option><option>Khilesh Vasaniya</option><option>Kruti Dave</option>
+            <option>Kunal Sakpal</option><option>Lalit Gajjar</option><option>Mahavir Verma</option>
+            <option>Manish Joshipura</option><option>Mohamad Husen Meman</option><option>Nidhi Suthar</option>
+            <option>Parimal Chaudhari</option><option>Santosh Manohar</option><option>Saptarshi Bhattacharya</option>
+            <option>Saunik Gajjar</option><option>Shreya Chaturvedi</option><option>Suchita Shah</option>
+            <option>Sweta Shah</option><option>Tejasvee Makwana</option><option>Urvashi Khandhediya</option>
+            <option>Vaibhav Jadhav</option><option>Vedangi Nijsure</option>
+          </select>
+          <div class="error-msg">Account Head is required</div>
+        </div>
+        <div class="field">
+          <label>Sales Person Name <span class="req">*</span></label>
+          <select id="salesPerson" required>
+            <option value="">— Select Sales Person —</option>
+            <option>Aakash Mehta</option><option>Abha Shah</option><option>Alpesh Kumar</option>
+            <option>Amit Thakur</option><option>Ashwini Mahadik</option><option>Dhairya Trivedi</option>
+            <option>Dharmendra Pandya</option><option>Dharti Parmar</option><option>Harish Shendage</option>
+            <option>Hema Raikar</option><option>Hemandra Tomar</option><option>Jayen Rachh</option>
+            <option>Jinal Parekh</option><option>Jyoti Rajput</option><option>Kaushal Patel</option>
+            <option>Kaushik Soni</option><option>Khilesh Vasaniya</option><option>Kruti Dave</option>
+            <option>Kunal Sakpal</option><option>Lalit Gajjar</option><option>Mahavir Verma</option>
+            <option>Manish Joshipura</option><option>Mohamad Husen Meman</option><option>Nidhi Suthar</option>
+            <option>Parimal Chaudhari</option><option>Santosh Manohar</option><option>Saptarshi Bhattacharya</option>
+            <option>Saunik Gajjar</option><option>Shreya Chaturvedi</option><option>Suchita Shah</option>
+            <option>Sweta Shah</option><option>Tejasvee Makwana</option><option>Urvashi Khandhediya</option>
+            <option>Vaibhav Jadhav</option><option>Vedangi Nijsure</option>
+          </select>
+          <div class="error-msg">Sales Person is required</div>
+        </div>
+        <div class="field">
+          <label>ISR / Reference Name <span class="req">*</span></label>
+          <select id="isrName" required>
+            <option value="">— Select ISR / Reference —</option>
+            <option>Aakash Mehta</option><option>Abha Shah</option><option>Alpesh Kumar</option>
+            <option>Amit Thakur</option><option>Ashwini Mahadik</option><option>Dhairya Trivedi</option>
+            <option>Dharmendra Pandya</option><option>Dharti Parmar</option><option>Harish Shendage</option>
+            <option>Hema Raikar</option><option>Hemandra Tomar</option><option>Jayen Rachh</option>
+            <option>Jinal Parekh</option><option>Jyoti Rajput</option><option>Kaushal Patel</option>
+            <option>Kaushik Soni</option><option>Khilesh Vasaniya</option><option>Kruti Dave</option>
+            <option>Kunal Sakpal</option><option>Lalit Gajjar</option><option>Mahavir Verma</option>
+            <option>Manish Joshipura</option><option>Mohamad Husen Meman</option><option>Nidhi Suthar</option>
+            <option>Parimal Chaudhari</option><option>Santosh Manohar</option><option>Saptarshi Bhattacharya</option>
+            <option>Saunik Gajjar</option><option>Shreya Chaturvedi</option><option>Suchita Shah</option>
+            <option>Sweta Shah</option><option>Tejasvee Makwana</option><option>Urvashi Khandhediya</option>
+            <option>Vaibhav Jadhav</option><option>Vedangi Nijsure</option>
+          </select>
+          <div class="error-msg">ISR / Reference Name is required</div>
+        </div>
+        <div class="field">
+          <label>SO Prepared By <span class="req">*</span></label>
+          <select id="soPreparedBy" required>
+            <option value="">— Select SO Prepared By —</option>
+            <option>Aakash Mehta</option><option>Abha Shah</option><option>Alpesh Kumar</option>
+            <option>Amit Thakur</option><option>Ashwini Mahadik</option><option>Dhairya Trivedi</option>
+            <option>Dharmendra Pandya</option><option>Dharti Parmar</option><option>Harish Shendage</option>
+            <option>Hema Raikar</option><option>Hemandra Tomar</option><option>Jayen Rachh</option>
+            <option>Jinal Parekh</option><option>Jyoti Rajput</option><option>Kaushal Patel</option>
+            <option>Kaushik Soni</option><option>Khilesh Vasaniya</option><option>Kruti Dave</option>
+            <option>Kunal Sakpal</option><option>Lalit Gajjar</option><option>Mahavir Verma</option>
+            <option>Manish Joshipura</option><option>Mohamad Husen Meman</option><option>Nidhi Suthar</option>
+            <option>Parimal Chaudhari</option><option>Santosh Manohar</option><option>Saptarshi Bhattacharya</option>
+            <option>Saunik Gajjar</option><option>Shreya Chaturvedi</option><option>Suchita Shah</option>
+            <option>Sweta Shah</option><option>Tejasvee Makwana</option><option>Urvashi Khandhediya</option>
+            <option>Vaibhav Jadhav</option><option>Vedangi Nijsure</option>
+          </select>
+          <div class="error-msg">SO Prepared By is required</div>
+        </div>
+        <div class="field">
+          <label>Type of Order <span class="req">*</span></label>
+          <select id="orderType" required>
+            <option value="">— Select Order Type —</option>
+            <option>NEW Order</option><option>Churned In</option><option>Renewal</option>
+            <option>Upsell</option><option>Addon</option><option>Azure Subs</option>
+          </select>
+          <div class="error-msg">Type of Order is required</div>
+        </div>
+        <div class="field">
+          <label>Payment Terms <span class="req">*</span></label>
+          <select id="paymentTerms" required>
+            <option value="">— Select Payment Terms —</option>
+            <option>Advance</option><option>Agnst Deliv / Invoice</option><option>07 days</option>
+            <option>10 days</option><option>15 days</option><option>21 days</option>
+            <option>30 days</option><option>45 days</option><option>60 days</option><option>75 days</option>
+          </select>
+          <div class="error-msg">Payment Terms is required</div>
+        </div>
+        <div class="field">
+          <label>Distributor <span class="req">*</span></label>
+          <select id="distributor" required>
+            <option value="">— Select Distributor —</option>
+            <option>Ark Info</option><option>Compuage</option><option>Genesis</option>
+            <option>Ingram Micro</option><option>Inflow Tech</option><option>Redington</option>
+            <option>Savex</option><option>SGL</option><option>Tech Data</option><option>Vista Info</option>
+          </select>
+          <div class="error-msg">Distributor is required</div>
+        </div>
+        <div class="field">
+          <label>Billing Type <span class="req">*</span></label>
+          <select id="billingType" required>
+            <option value="">— Select Billing Type —</option>
+            <option>Partner</option><option>End Customer</option>
+          </select>
+          <div class="error-msg">Billing Type is required</div>
+        </div>
+        <div class="field">
+          <label>Customer PO Number <span class="req">*</span></label>
+          <input type="text" id="custPONo" placeholder="Customer PO number" required>
+          <div class="error-msg">Customer PO Number is required</div>
+        </div>
+        <div class="field">
+          <label>Customer PO Date <span class="req">*</span></label>
+          <input type="date" id="custPODate" required>
+          <div class="error-msg">Customer PO Date is required</div>
+        </div>
+        <div class="field">
+          <label>Billing State <span class="req">*</span></label>
+          <select id="billingState" required>
+            <option value="">— Select Billing State —</option>
+            <option>Local (Within State)</option><option>Outside state</option>
+          </select>
+          <div class="error-msg">Billing State is required</div>
+        </div>
+        <div class="field">
+          <label>Send Invoice Email To <span class="req">*</span></label>
+          <input type="email" id="invoiceEmail" placeholder="invoice@company.com" required>
+          <div class="error-msg">Valid email address is required</div>
+        </div>
+      </div>
+      <div class="form-divider" style="margin-top:20px;"></div>
+      <div class="grid-3">
+        <div class="field">
+          <label>Renewal / Order Sub-Type <span class="req">*</span></label>
+          <select id="renewalType" required>
+            <option value="">— Select —</option>
+            <option>Adobe Renewal</option><option>Autodesk Renewal</option><option>Hardware Renewal</option>
+            <option>O365 Renewal</option><option>NEW Order</option><option>SonicWall Renewal</option>
+            <option>Sophos Renewal</option><option>QNAP DR Details</option>
+          </select>
+          <div class="error-msg">Sub-type is required</div>
+        </div>
+        <div class="field">
+          <label>Start Date <span class="req">*</span></label>
+          <input type="date" id="startDate" required>
+          <div class="error-msg">Start Date is required</div>
+        </div>
+        <div class="field">
+          <label>End Date <span class="req">*</span></label>
+          <input type="date" id="endDate" required>
+          <div class="error-msg">End Date is required</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- END USER DETAILS -->
+    <div class="section">
+      <div class="section-title">End User Details</div>
+      <div class="grid-2">
+        <div class="field col-span-2">
+          <label>Name of the Company <span class="req">*</span></label>
+          <input type="text" id="euCompany" placeholder="End user company name" required>
+          <div class="error-msg">Company name is required</div>
+        </div>
+        <div class="field">
+          <label>Address Line 1 <span class="req">*</span></label>
+          <input type="text" id="euAddr1" placeholder="Street address" required>
+          <div class="error-msg">Address Line 1 is required</div>
+        </div>
+        <div class="field">
+          <label>Address Line 2</label>
+          <input type="text" id="euAddr2" placeholder="Apt, suite, etc.">
+        </div>
+        <div class="field">
+          <label>City <span class="req">*</span></label>
+          <input type="text" id="euCity" placeholder="City" required>
+          <div class="error-msg">City is required</div>
+        </div>
+        <div class="field">
+          <label>State &amp; PIN Code <span class="req">*</span></label>
+          <input type="text" id="euStatePIN" placeholder="e.g. Gujarat — 380001" required>
+          <div class="error-msg">State & PIN Code is required</div>
+        </div>
+        <div class="field">
+          <label>Contact Person <span class="req">*</span></label>
+          <input type="text" id="euContact" placeholder="Contact person name" required>
+          <div class="error-msg">Contact Person is required</div>
+        </div>
+        <div class="field">
+          <label>Contact No. <span class="req">*</span></label>
+          <input type="tel" id="euPhone" placeholder="+91 XXXXX XXXXX" required>
+          <div class="error-msg">Contact Number is required</div>
+        </div>
+        <div class="field">
+          <label>E-Mail ID <span class="req">*</span></label>
+          <input type="email" id="euEmail" placeholder="contact@company.com" required>
+          <div class="error-msg">Valid email is required</div>
+        </div>
+        <div class="field">
+          <label>PAN No. <span class="req">*</span></label>
+          <input type="text" id="euPAN" placeholder="ABCDE1234F" maxlength="10" required>
+          <div class="error-msg">PAN Number is required</div>
+        </div>
+        <div class="field col-span-2">
+          <label>GST No. <span class="req">*</span></label>
+          <input type="text" id="euGST" placeholder="22AAAAA0000A1Z5" maxlength="15" required>
+          <div class="error-msg">GST Number is required</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PARTNER BILLING ADDRESS -->
+    <div class="section">
+      <div class="section-title">Partner Billing Address</div>
+      <div class="grid-2">
+        <div class="field col-span-2">
+          <label>Partner Company Name <span class="req">*</span></label>
+          <input type="text" id="pbCompany" placeholder="Partner company name" required>
+          <div class="error-msg">Company name is required</div>
+        </div>
+        <div class="field">
+          <label>Address Line 1 <span class="req">*</span></label>
+          <input type="text" id="pbAddr1" placeholder="Street address" required>
+          <div class="error-msg">Address is required</div>
+        </div>
+        <div class="field">
+          <label>City <span class="req">*</span></label>
+          <input type="text" id="pbCity" placeholder="City" required>
+          <div class="error-msg">City is required</div>
+        </div>
+        <div class="field">
+          <label>GST No. <span class="req">*</span></label>
+          <input type="text" id="pbGST" placeholder="GST Number" maxlength="15" required>
+          <div class="error-msg">GST Number is required</div>
+        </div>
+        <div class="field">
+          <label>Contact Person <span class="req">*</span></label>
+          <input type="text" id="pbContact" placeholder="Contact person" required>
+          <div class="error-msg">Contact Person is required</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PARTNER DISPATCH ADDRESS -->
+    <div class="section">
+      <div class="section-title">Partner Dispatch Address</div>
+      <div class="grid-2">
+        <div class="field col-span-2">
+          <label>Address Line 1 <span class="req">*</span></label>
+          <input type="text" id="pdAddr1" placeholder="Dispatch street address" required>
+          <div class="error-msg">Dispatch address is required</div>
+        </div>
+        <div class="field">
+          <label>City <span class="req">*</span></label>
+          <input type="text" id="pdCity" placeholder="City" required>
+          <div class="error-msg">City is required</div>
+        </div>
+        <div class="field">
+          <label>State &amp; PIN Code <span class="req">*</span></label>
+          <input type="text" id="pdStatePIN" placeholder="e.g. Maharashtra — 400001" required>
+          <div class="error-msg">State & PIN Code is required</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRODUCT DETAILS -->
+    <div class="section">
+      <div class="section-title">Product Details</div>
+      <div class="product-table-wrap">
+        <table id="productTable">
+          <thead>
+            <tr>
+              <th>Sr.</th>
+              <th>Product Description [Part No. / SKU]</th>
+              <th>OEM Business Type</th>
+              <th>Business Subtype</th>
+              <th>UID No.</th>
+              <th>Unit Price (₹)</th>
+              <th>Qty</th>
+              <th>Total Price (₹)</th>
+              <th>DR / Rebate Value</th>
+              <th>Credit Note Value</th>
+              <th>Expected Total Income</th>
+            </tr>
+          </thead>
+          <tbody id="productRows"></tbody>
+          <tfoot>
+            <tr class="total-row">
+              <td colspan="7" style="text-align:right;padding-right:16px;">Total Amount (Without Tax)</td>
+              <td id="grandTotal">₹ 0.00</td>
+              <td id="grandRebate">₹ 0.00</td>
+              <td id="grandCredit">₹ 0.00</td>
+              <td id="grandExpected">₹ 0.00</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <button type="button" class="add-row-btn" onclick="addProductRow()">＋ Add Product Row</button>
+    </div>
+
+    <!-- AGREED TERMS -->
+    <div class="section">
+      <div class="section-title">Agreed Terms of Order</div>
+      <div class="grid-2">
+        <div class="field">
+          <label>Payment Terms <span class="req">*</span></label>
+          <select id="agreedPayTerms" required>
+            <option value="">— Select —</option>
+            <option>Advance</option><option>Agnst Deliv / Invoice</option><option>07 days</option>
+            <option>10 days</option><option>15 days</option><option>21 days</option>
+            <option>30 days</option><option>45 days</option><option>60 days</option><option>75 days</option>
+          </select>
+          <div class="error-msg">Payment Terms is required</div>
+        </div>
+        <div class="field">
+          <label>Advanced Amount (₹)</label>
+          <input type="number" id="advanceAmt" placeholder="0.00" min="0">
+        </div>
+        <div class="field">
+          <label>Penalty Clause</label>
+          <input type="text" id="penaltyClause" placeholder="Describe any penalty clause">
+        </div>
+        <div class="field">
+          <label>Delivery Period <span class="req">*</span></label>
+          <input type="text" id="deliveryPeriod" placeholder="e.g. 7–10 business days" required>
+          <div class="error-msg">Delivery Period is required</div>
+        </div>
+        <div class="field">
+          <label>Shipping Terms <span class="req">*</span></label>
+          <select id="shippingTerms" required>
+            <option value="">— Select —</option>
+            <option>To Partner address</option><option>To Customer Address</option>
+            <option>Pickup from Office</option><option>Deliver to 3rd party</option>
+          </select>
+          <div class="error-msg">Shipping Terms is required</div>
+        </div>
+        <div class="field">
+          <label>Courier Charges <span class="req">*</span></label>
+          <select id="courierCharges" required>
+            <option value="">— Select —</option>
+            <option>Courier Extra</option><option>Included in Price</option><option>Free</option>
+          </select>
+          <div class="error-msg">Courier Charges is required</div>
+        </div>
+        <div class="field">
+          <label>Commission / ORC Details <span class="req">*</span></label>
+          <input type="text" id="commission" value="No Commission to be paid" required>
+          <div class="error-msg">Commission details are required</div>
+        </div>
+        <div class="field">
+          <label>OEM Business Type <span class="req">*</span></label>
+          <select id="oemBizType" required>
+            <option value="">— Select —</option>
+            <option>New Business</option><option>Renewal</option>
+          </select>
+          <div class="error-msg">OEM Business Type is required</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAX & FREIGHT -->
+    <div class="section">
+      <div class="section-title">Tax &amp; Freight Details</div>
+      <div class="grid-3">
+        <div class="field">
+          <label>SGST (₹)</label>
+          <input type="number" id="sgst" placeholder="0.00" min="0">
+        </div>
+        <div class="field">
+          <label>CGST (₹)</label>
+          <input type="number" id="cgst" placeholder="0.00" min="0">
+        </div>
+        <div class="field">
+          <label>IGST (₹)</label>
+          <input type="number" id="igst" placeholder="0.00" min="0">
+        </div>
+        <div class="field">
+          <label>ORC Amount to be Paid (₹)</label>
+          <input type="number" id="orcAmt" placeholder="0.00" min="0">
+        </div>
+        <div class="field">
+          <label>Net Sales Value to ITCG (₹)</label>
+          <input type="number" id="netSalesValue" placeholder="0.00" min="0">
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /form-body -->
+
+  <div class="form-footer" id="formFooter">
+    <div class="footer-note">All mandatory fields must be completed before submission</div>
+    <button type="submit" class="submit-btn">
+      <span></span> Submit
+    </button>
+  </div>
+  </form>
+
+  <!-- Success -->
+  <div class="success-overlay" id="successOverlay">
+    <div class="success-icon">✓</div>
+    <div class="success-title">Sales Order Submitted!</div>
+    <div class="success-sub">Your Internal Sales Order has been recorded successfully. Download the PDF copy for your records and backoffice processing.</div>
+    <button class="download-btn" onclick="downloadPDF()">
+      <span style="font-size:20px">⬇</span>&nbsp; Download Sales Order PDF
+    </button>
+    <br>
+    <button class="new-order-btn" onclick="resetForm()">↩ &nbsp;Create New Order</button>
+  </div>
+
+</div>
+
+<script>
+  // Date
+  const today = new Date();
+  document.getElementById('todayDate').textContent =
+    today.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+
+  // Product rows
+  const oemTypes = ['New Business','Renewal'];
+  const subTypes = ['Subsrciption','Renewal','License','Term Lic','Support','AMC','NEW'];
+  let rowCount = 0;
+
+  function addProductRow() {
+    rowCount++;
+    const tbody = document.getElementById('productRows');
+    const tr = document.createElement('tr');
+    tr.id = `pr_${rowCount}`;
+    tr.innerHTML = `
+      <td>${rowCount}</td>
+      <td><input type="text" placeholder="Description / SKU"></td>
+      <td><select><option value="">—</option>${oemTypes.map(o=>`<option>${o}</option>`).join('')}</select></td>
+      <td><select><option value="">—</option>${subTypes.map(s=>`<option>${s}</option>`).join('')}</select></td>
+      <td><input type="text" placeholder="UID"></td>
+      <td><input type="number" placeholder="0.00" min="0" class="unit-price" oninput="calcRow(this)"></td>
+      <td><input type="number" placeholder="1" min="1" value="1" class="qty" oninput="calcRow(this)"></td>
+      <td class="row-total" style="font-weight:600; color:#1a2640;">₹ 0.00</td>
+      <td><input type="number" placeholder="0.00" min="0" class="row-rebate" oninput="calcExpected(this)"></td>
+      <td><input type="number" placeholder="0.00" min="0" class="row-credit" oninput="calcExpected(this)"></td>
+      <td class="row-expected" style="font-weight:600; color:#1a2640;">₹ 0.00</td>
+    `;
+    tbody.appendChild(tr);
+  }
+
+  function calcRow(el) {
+    const tr = el.closest('tr');
+    const price = parseFloat(tr.querySelector('.unit-price').value) || 0;
+    const qty   = parseFloat(tr.querySelector('.qty').value) || 0;
+    const total = price * qty;
+    tr.querySelector('.row-total').textContent = '₹ ' +
+      total.toLocaleString('en-IN', {minimumFractionDigits:2});
+    calcExpected(el);
+    calcGrandTotal();
+  }
+
+  function calcExpected(el) {
+    const tr = el.closest('tr');
+    const totalEl = tr.querySelector('.row-total');
+    const total   = parseFloat(totalEl.textContent.replace('₹','').replace(/,/g,'').trim()) || 0;
+    const rebate  = parseFloat(tr.querySelector('.row-rebate')?.value) || 0;
+    const credit  = parseFloat(tr.querySelector('.row-credit')?.value) || 0;
+    const expected = total - rebate - credit;
+    tr.querySelector('.row-expected').textContent = '₹ ' +
+      expected.toLocaleString('en-IN', {minimumFractionDigits:2});
+    calcGrandTotal();
+  }
+
+  function calcGrandTotal() {
+    let total = 0, rebate = 0, credit = 0, expected = 0;
+    document.querySelectorAll('#productRows tr').forEach(tr => {
+      total    += parseFloat(tr.querySelector('.row-total')?.textContent.replace('₹','').replace(/,/g,'').trim()) || 0;
+      rebate   += parseFloat(tr.querySelector('.row-rebate')?.value) || 0;
+      credit   += parseFloat(tr.querySelector('.row-credit')?.value) || 0;
+      expected += parseFloat(tr.querySelector('.row-expected')?.textContent.replace('₹','').replace(/,/g,'').trim()) || 0;
+    });
+    const fmt = n => '₹ ' + n.toLocaleString('en-IN', {minimumFractionDigits:2});
+    document.getElementById('grandTotal').textContent    = fmt(total);
+    document.getElementById('grandRebate').textContent   = fmt(rebate);
+    document.getElementById('grandCredit').textContent   = fmt(credit);
+    document.getElementById('grandExpected').textContent = fmt(expected);
+  }
+
+  // init rows
+  addProductRow(); addProductRow(); addProductRow();
+
+  // Live clear error
+  document.addEventListener('input', e => {
+    if (e.target.hasAttribute('required') && e.target.value.trim()) {
+      e.target.classList.remove('error');
+      const f = e.target.closest('.field');
+      if (f) f.classList.remove('has-error');
+    }
+  });
+  document.addEventListener('change', e => {
+    if (e.target.hasAttribute('required') && e.target.value.trim()) {
+      e.target.classList.remove('error');
+      const f = e.target.closest('.field');
+      if (f) f.classList.remove('has-error');
+    }
+  });
+
+  // Validate
+  function validateForm() {
+    let valid = true;
+    document.querySelectorAll('[required]').forEach(el => {
+      const field = el.closest('.field');
+      if (!el.value.trim()) {
+        el.classList.add('error');
+        if (field) field.classList.add('has-error');
+        valid = false;
+      } else {
+        el.classList.remove('error');
+        if (field) field.classList.remove('has-error');
+      }
+    });
+    ['invoiceEmail','euEmail'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el && el.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(el.value)) {
+        el.classList.add('error');
+        const f = el.closest('.field');
+        if (f) { f.classList.add('has-error'); f.querySelector('.error-msg').textContent = 'Valid email is required'; }
+        valid = false;
+      }
+    });
+    return valid;
+  }
+
+  // Submit
+  document.getElementById('soForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (!validateForm()) {
+      const firstError = document.querySelector('.error');
+      if (firstError) firstError.scrollIntoView({behavior:'smooth', block:'center'});
+      return;
+    }
+    document.getElementById('soForm').style.display = 'none';
+    document.getElementById('formFooter').style.display = 'none';
+    document.getElementById('successOverlay').classList.add('show');
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+
+  function resetForm() {
+    document.getElementById('soForm').reset();
+    document.getElementById('soForm').style.display = 'block';
+    document.getElementById('formFooter').style.display = 'flex';
+    document.getElementById('successOverlay').classList.remove('show');
+    document.getElementById('productRows').innerHTML = '';
+    rowCount = 0;
+    addProductRow(); addProductRow(); addProductRow();
+    ['grandTotal','grandRebate','grandCredit','grandExpected'].forEach(id => {
+      document.getElementById(id).textContent = '₹ 0.00';
+    });
+    document.querySelectorAll('.error').forEach(el=>el.classList.remove('error'));
+    document.querySelectorAll('.has-error').forEach(el=>el.classList.remove('has-error'));
+  }
+
+  // Helpers
+  function val(id) {
+    const el = document.getElementById(id);
+    return el ? (el.value.trim() || '—') : '—';
+  }
+
+  // PDF
+  function downloadPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
+    const W = 210, M = 13;
+    let y = 0;
+
+    // ── HEADER BAND ──
+    doc.setFillColor(10,22,40);
+    doc.rect(0,0,W,36,'F');
+    doc.setFillColor(200,145,42);
+    doc.rect(0,0,W,2.5,'F');
+
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(15);
+    doc.setTextColor(255,255,255);
+    doc.text('INTERNAL SALES ORDER', M, 14);
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica','normal');
+    doc.setTextColor(200,145,42);
+    doc.text('Version 7.0  ·  Apr 2024  ·  Confidential', M, 21);
+    doc.setTextColor(160,175,200);
+    doc.text('Date: ' + today.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}), M, 28);
+    doc.text('Customer PO: ' + val('custPONo') + '   |   PO Date: ' + val('custPODate'), W/2, 28);
+    y = 42;
+
+    function sectionHead(title) {
+      if (y > 265) { doc.addPage(); y = 18; }
+      doc.setFillColor(238,242,249);
+      doc.rect(M, y-4, W-2*M, 8,'F');
+      doc.setFillColor(200,145,42);
+      doc.rect(M, y-4, 2, 8,'F');
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(7.5);
+      doc.setTextColor(26,58,107);
+      doc.text(title.toUpperCase(), M+4, y+1);
+      y += 9;
+    }
+
+    function hline() {
+      doc.setDrawColor(208,217,232);
+      doc.setLineWidth(0.3);
+      doc.line(M, y, W-M, y);
+      y += 4;
+    }
+
+    function kvRow(pairs) {
+      if (y > 270) { doc.addPage(); y = 18; }
+      const colW = (W-2*M)/pairs.length;
+      pairs.forEach(([label, value], i) => {
+        const x = M + i*colW;
+        doc.setFont('helvetica','bold');
+        doc.setFontSize(6.5);
+        doc.setTextColor(107,122,148);
+        doc.text(label, x, y);
+        doc.setFont('helvetica','normal');
+        doc.setFontSize(9);
+        doc.setTextColor(26,38,64);
+        const txt = doc.splitTextToSize(String(value), colW-4);
+        doc.text(txt[0]||'', x, y+5);
+      });
+      y += 12;
+    }
+
+    // ── ORDER INFO ──
+    sectionHead('Order Information');
+    kvRow([['Account Head', val('accountHead')], ['Sales Person', val('salesPerson')], ['ISR / Ref. Name', val('isrName')]]);
+    kvRow([['Order Type', val('orderType')], ['Payment Terms', val('paymentTerms')], ['Billing Type', val('billingType')]]);
+    kvRow([['Distributor', val('distributor')], ['Billing State', val('billingState')], ['SO Prepared By', val('soPreparedBy')]]);
+    kvRow([['Sub-Type / Renewal', val('renewalType')], ['Start Date', val('startDate')], ['End Date', val('endDate')]]);
+    kvRow([['Invoice Email', val('invoiceEmail')], ['Customer PO No.', val('custPONo')], ['Customer PO Date', val('custPODate')]]);
+    hline();
+
+    // ── END USER ──
+    sectionHead('End User Details');
+    kvRow([['Company', val('euCompany')]]);
+    kvRow([['Address Line 1', val('euAddr1')], ['Address Line 2', val('euAddr2')]]);
+    kvRow([['City', val('euCity')], ['State & PIN Code', val('euStatePIN')]]);
+    kvRow([['PAN No.', val('euPAN')], ['GST No.', val('euGST')]]);
+    kvRow([['Contact Person', val('euContact')], ['Contact No.', val('euPhone')], ['Email', val('euEmail')]]);
+    hline();
+
+    // ── PARTNER BILLING ──
+    sectionHead('Partner Billing Address');
+    kvRow([['Company', val('pbCompany')]]);
+    kvRow([['Address', val('pbAddr1')], ['City', val('pbCity')]]);
+    kvRow([['GST No.', val('pbGST')], ['Contact Person', val('pbContact')]]);
+    hline();
+
+    // ── PARTNER DISPATCH ──
+    sectionHead('Partner Dispatch Address');
+    kvRow([['Address', val('pdAddr1')], ['City', val('pdCity')], ['State & PIN', val('pdStatePIN')]]);
+    hline();
+
+    // ── PRODUCT TABLE ──
+    sectionHead('Product Details');
+    const headers  = ['Sr.','Product Description / SKU','OEM Type','Sub-Type','UID','Unit (₹)','Qty','Total (₹)','DR/Rebate','Credit Note','Exp. Income'];
+    const colWidths = [7, 42, 18, 16, 12, 15, 8, 18, 16, 16, 16];
+    const tableW = colWidths.reduce((a,b)=>a+b,0);
+
+    // thead
+    doc.setFillColor(10,22,40);
+    doc.rect(M, y-1.5, tableW, 7,'F');
+    let cx = M;
+    headers.forEach((h,i) => {
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(6);
+      doc.setTextColor(190,205,230);
+      doc.text(h, cx+1, y+3.5);
+      cx += colWidths[i];
+    });
+    y += 7;
+
+    // rows
+    document.querySelectorAll('#productRows tr').forEach((tr, idx) => {
+      if (y > 265) { doc.addPage(); y = 18; }
+      if (idx%2===0) { doc.setFillColor(248,250,255); doc.rect(M, y-1, tableW, 7,'F'); }
+      const cells = tr.querySelectorAll('td');
+      const rowVals = [
+        cells[0]?.textContent?.trim()||'',
+        cells[1]?.querySelector('input')?.value||'',
+        cells[2]?.querySelector('select')?.value||'',
+        cells[3]?.querySelector('select')?.value||'',
+        cells[4]?.querySelector('input')?.value||'',
+        cells[5]?.querySelector('input')?.value||'',
+        cells[6]?.querySelector('input')?.value||'',
+        cells[7]?.textContent?.trim()||'₹0.00',
+        cells[8]?.querySelector('input')?.value||'0',
+        cells[9]?.querySelector('input')?.value||'0',
+        cells[10]?.textContent?.trim()||'₹0.00'
+      ];
+      let cx2 = M;
+      rowVals.forEach((v,i) => {
+        doc.setFont('helvetica','normal');
+        doc.setFontSize(7.5);
+        doc.setTextColor(26,38,64);
+        doc.text(String(v).substring(0,i===1?22:12), cx2+1, y+4);
+        cx2 += colWidths[i];
+      });
+      y += 7;
+      doc.setDrawColor(220,228,240); doc.setLineWidth(0.2);
+      doc.line(M, y-0.5, M+tableW, y-0.5);
+    });
+
+    // grand total row
+    doc.setFillColor(238,242,249);
+    doc.rect(M, y-0.5, tableW, 9,'F');
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(8);
+    doc.setTextColor(10,22,40);
+    doc.text('Total (Excl. Tax)', M+2, y+5);
+    // Print each column total aligned
+    const totalOffsets = [0,1,2,3].map((_, i) => colWidths.slice(0, 7+i).reduce((a,b)=>a+b,0));
+    const totalIds = ['grandTotal','grandRebate','grandCredit','grandExpected'];
+    totalIds.forEach((id, i) => {
+      const xPos = M + colWidths.slice(0,7+i).reduce((a,b)=>a+b,0) + 1;
+      doc.text(document.getElementById(id).textContent, xPos, y+5);
+    });
+    y += 13;
+    hline();
+
+    // ── AGREED TERMS ──
+    sectionHead('Agreed Terms of Order');
+    kvRow([['Payment Terms', val('agreedPayTerms')], ['Advance Amount', '₹ '+val('advanceAmt')], ['Delivery Period', val('deliveryPeriod')]]);
+    kvRow([['Shipping Terms', val('shippingTerms')], ['Courier Charges', val('courierCharges')], ['OEM Biz Type', val('oemBizType')]]);
+    kvRow([['Penalty Clause', val('penaltyClause')], ['Commission / ORC', val('commission')]]);
+    hline();
+
+    // ── TAX ──
+    sectionHead('Tax & Freight Details');
+    kvRow([['SGST (₹)', '₹ '+val('sgst')], ['CGST (₹)', '₹ '+val('cgst')], ['IGST (₹)', '₹ '+val('igst')]]);
+    kvRow([['ORC Amount', '₹ '+val('orcAmt')], ['Net Sales to ITCG', '₹ '+val('netSalesValue')]]);
+    hline();
+
+    // ── T&C ──
+    sectionHead('Terms & Conditions');
+    const tcs = [
+      '1. Please ensure that all the items above are already created in SAP.',
+      '2. Please ensure that the ledger of Partner/Customer is already created in SAP before sending to Backoffice / Accounts.',
+      '3. Please check Customer / Partner Credit Status before sending this SO to Backoffice to ensure Approval of PO.'
+    ];
+    tcs.forEach(tc => {
+      if (y > 270) { doc.addPage(); y = 18; }
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(8);
+      doc.setTextColor(80,92,115);
+      const lines = doc.splitTextToSize(tc, W-2*M-4);
+      doc.text(lines, M+2, y);
+      y += lines.length * 5 + 2;
+    });
+    y += 4; hline();
+
+    // ── APPROVAL ──
+    if (y > 255) { doc.addPage(); y = 18; }
+    sectionHead('Approval Signatures');
+    y += 12;
+    ['Sales Person', 'Account Head', 'Authorised Signatory'].forEach((s,i) => {
+      const sw = (W-2*M)/3;
+      const sx = M + i*sw;
+      doc.setDrawColor(160,175,200); doc.setLineWidth(0.5);
+      doc.line(sx+2, y+12, sx+sw-4, y+12);
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(107,122,148);
+      doc.text(s, sx+2, y+18);
+    });
+
+    // ── FOOTER BAND ──
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let p=1; p<=pageCount; p++) {
+      doc.setPage(p);
+      doc.setFillColor(10,22,40);
+      doc.rect(0,285,W,12,'F');
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(7);
+      doc.setTextColor(140,155,185);
+      doc.text('INTERNAL SALES ORDER  ·  Ver 7.0  ·  Confidential', M, 293);
+      doc.text(`Page ${p} of ${pageCount}   |   Generated: ${today.toLocaleDateString('en-IN')}`, W-M-50, 293);
+    }
+
+    const co = val('euCompany').replace(/[^a-zA-Z0-9]/g,'_');
+    doc.save(`Sales_Order_${co}_${today.toISOString().slice(0,10)}.pdf`);
+  }
+</script>
+</body>
+</html>
