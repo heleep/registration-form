@@ -102,7 +102,10 @@ http://127.0.0.1:5000/
 ## 🤝 Contributing
 
 Feel free to contribute to this project.
+---
 
+## 👨‍💻 Developed By
+Helee
 ---
 
 ## 📄 License
