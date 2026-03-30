@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITCG Solutions – Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #f0f4f8;
+            --bg-subtle: #e8edf3;
+            --surface: #ffffff;
+            --surface-raised: #ffffff;
+            --navy: #1a2e44;
+            --navy-mid: #1e3a52;
+            --navy-light: #f0f4f8;
+            --accent: #0077b6;
+            --accent-light: #e8f4fb;
+            --accent-glow: rgba(0,119,182,0.12);
+            --accent-hover: #005f92;
+            --success: #059669;
+            --success-bg: #ecfdf5;
+            --danger: #dc2626;
+            --danger-bg: #fef2f2;
+            --warning: #d97706;
+            --warning-bg: #fffbeb;
+            --info-bg: #eff6ff;
+            --text-primary: #1a2e44;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --border: #dde3ea;
+            --border-focus: #0077b6;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
+            --shadow-lg: 0 12px 40px rgba(0,0,0,0.1), 0 4px 12px rgba(0,0,0,0.06);
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); min-height: 100vh; display: flex; flex-direction: column; color: var(--text-primary); }
+        body::before { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #e8f0f8 0%, #f0f4f8 50%, #e4edf6 100%); pointer-events: none; z-index: 0; }
+
+        /* Top bar */
+        .top-bar { position: relative; z-index: 10; background: var(--navy); border-bottom: 1px solid rgba(255,255,255,0.06); padding: 7px 40px; display: flex; justify-content: flex-end; gap: 28px; font-size: 12px; color: rgba(255,255,255,0.6); }
+        .top-bar a { color: rgba(255,255,255,0.6); text-decoration: none; display: flex; align-items: center; gap: 6px; transition: color 0.2s; }
+        .top-bar a:hover { color: #fff; }
+        .top-bar i { color: #48b8e0; }
+
+        /* Navbar */
+        .navbar { position: relative; z-index: 10; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 40px; display: flex; align-items: center; justify-content: space-between; height: 68px; box-shadow: var(--shadow-sm); }
+        .nav-logo { display: flex; align-items: center; gap: 14px; text-decoration: none; }
+        .logo-icon { width: 44px; height: 44px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #fff; font-weight: 800; font-family: 'Montserrat', sans-serif; }
+        .logo-text .brand { font-family: 'Montserrat', sans-serif; font-size: 25px; font-weight: 700; color: var(--navy); }
+        .logo-text .sub { font-size: 10px; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; font-weight: 500; }
+        .nav-links { display: flex; align-items: center; gap: 4px; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 13px; font-weight: 500; padding: 7px 16px; border-radius: 6px; transition: all 0.2s; }
+        .nav-links a:hover { color: var(--accent); background: var(--accent-light); }
+        .nav-links a.active { color: var(--accent); background: var(--accent-light); font-weight: 600; }
+
+        /* Main */
+        .main { position: relative; z-index: 1; flex: 1; display: flex; align-items: center; justify-content: center; padding: 48px 20px; }
+        .auth-wrapper { width: 100%; max-width: 440px; }
+
+        /* Page intro */
+        .page-intro { text-align: center; margin-bottom: 28px; }
+        .page-intro h2 { font-family: 'Montserrat', sans-serif; font-size: 22px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+        .page-intro p { font-size: 13px; color: var(--text-secondary); }
+        .cyan-line { width: 36px; height: 3px; background: var(--accent); border-radius: 2px; margin: 10px auto 0; }
+
+        /* Steps */
+        .steps { display: flex; align-items: center; justify-content: center; margin-bottom: 28px; }
+        .step-item { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .step-circle { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: var(--text-muted); transition: all 0.3s; }
+        .step-circle.active { border-color: var(--accent); background: var(--accent); color: #fff; box-shadow: 0 0 0 4px var(--accent-glow); }
+        .step-circle.done { border-color: var(--success); background: var(--success); color: #fff; }
+        .step-label { font-size: 10px; color: var(--text-muted); font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; }
+        .step-label.active { color: var(--accent); font-weight: 600; }
+        .step-line { width: 56px; height: 2px; background: var(--border); margin: 0 4px 18px; transition: background 0.3s; }
+        .step-line.done { background: var(--success); }
+
+        /* Card */
+        .auth-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: var(--shadow-lg); }
+        .card-header { background: var(--navy); border-bottom: 1px solid rgba(255,255,255,0.07); padding: 24px 32px; position: relative; overflow: hidden; }
+        .card-header::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--accent), #48b8e0, transparent); }
+        .card-header h3 { font-family: 'Montserrat', sans-serif; font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+        .card-header p { font-size: 13px; color: rgba(255,255,255,0.55); }
+
+        /* Card body */
+        .card-body { padding: 28px 32px; background: var(--surface); }
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 7px; }
+        .input-wrap { position: relative; }
+        .input-wrap i { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 13px; pointer-events: none; transition: color 0.2s; }
+        .input-wrap input { width: 100%; padding: 11px 14px 11px 38px; background: var(--bg); border: 1.5px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 14px; font-family: 'Inter', sans-serif; transition: all 0.2s; outline: none; }
+        .input-wrap input::placeholder { color: var(--text-muted); }
+        .input-wrap input:focus { border-color: var(--border-focus); background: #fff; box-shadow: 0 0 0 3px var(--accent-glow); }
+        .input-wrap:focus-within i { color: var(--accent); }
+
+        .otp-section { display: none; }
+        .otp-section.show { display: block; animation: slideDown 0.3s ease; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .otp-info { background: rgba(219, 214, 214, 0.87); border: 1px solid rgba(228, 232, 232, 0.838); border-radius: 8px; padding: 11px 15px; margin-bottom: 18px; font-size: 13px; color: var(--text-muted); display: flex; align-items: flex-start; gap: 10px; }
+        .otp-info i { color: var(--cyan); flex-shrink: 0; margin-top: 2px; }
+        .otp-boxes { display: flex; gap: 8px; justify-content: center; }
+        .otp-box { width: 46px; height: 52px; text-align: center; background: rgba(22,40,64,0.7); border: 1.5px solid rgba(0,200,212,0.15); border-radius: 8px; color: var(--white); font-size: 20px; font-weight: 700; font-family: 'Montserrat', sans-serif; outline: none; transition: all 0.2s; }
+        .otp-box:focus { border-color: var(--cyan); background: rgba(22,40,64,0.95); box-shadow: 0 0 0 3px rgba(0,200,212,0.1); }
+        .timer-row { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; font-size: 12px; }
+        .timer-badge { display: flex; align-items: center; gap: 6px; color: var(--text-muted); }
+        .timer-badge.urgent { color: var(--danger); }
+        .resend-link { color: var(--cyan); cursor: pointer; font-size: 12px; display: none; background: none; border: none; font-family: 'Inter', sans-serif; }
+        .resend-link.show { display: inline; }
+        .btn { width: 100%; padding: 13px 24px; border: none; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+        .btn-primary { background: var(--cyan); color: var(--navy); }
+        .btn-primary:not(:disabled):hover { background: #05dae7; box-shadow: 0 8px 24px rgba(0,200,212,0.28); transform: translateY(-1px); }
+        .btn-secondary { background: rgba(255,255,255,0.04); color: #ccd8e8; border: 1px solid rgba(255,255,255,0.1); }
+        .btn-secondary:not(:disabled):hover { background: rgba(255,255,255,0.08); }
+        .btn-loader { width: 16px; height: 16px; border: 2px solid rgba(11,24,41,0.25); border-top-color: var(--navy); border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .alert { padding: 11px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; display: none; align-items: flex-start; gap: 9px; }
+        .alert.show { display: flex; animation: slideDown 0.3s ease; }
+        .alert-success { background: rgba(0,224,150,0.09); border: 1px solid rgba(0,224,150,0.25); color: #00e096; }
+        .alert-error { background: rgba(255,92,106,0.09); border: 1px solid rgba(255,92,106,0.25); color: #ff7a84; }
+        .alert-info { background: rgba(0,200,212,0.09); border: 1px solid rgba(0,200,212,0.22); color: var(--cyan); }
+        .alert i { flex-shrink: 0; margin-top: 1px; }
+        .card-footer { border-top: 1px solid var(--border); padding: 16px 30px; text-align: center; font-size: 13px; color: var(--text-muted); }
+        .card-footer a { color: var(--cyan); text-decoration: none; font-weight: 500; }
+        .card-footer a:hover { text-decoration: underline; }
+        .site-footer { position: relative; z-index: 1; background: rgba(0,0,0,0.25); border-top: 1px solid rgba(0,200,212,0.07); padding: 14px 40px; text-align: center; font-size: 12px; color: var(--text-muted); }
+        .site-footer a { color: var(--text-muted); text-decoration: none; margin: 0 10px; }
+        .site-footer a:hover { color: var(--cyan); }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <a href="tel:+912249700800"><i class="fas fa-phone-alt"></i> +91 22 4970 0800</a>
+        <a href="mailto:info@itcgindia.com"><i class="fas fa-envelope"></i> info@itcgindia.com</a>
+    </div>
+    <nav class="navbar">
+        <a href="/" class="nav-logo">
+            <img src="https://itcgtechnologies.com/wp-content/uploads/2024/01/ITCG-logo-01e-scaled.webp" 
+                 style="height:44px; width:auto; object-fit:contain; display:block; filter: invert(1) brightness(0) saturate(100%) invert(19%) sepia(60%) saturate(600%) hue-rotate(185deg) brightness(85%);">
+        </a>
+            <div class="logo-text">
+                <div class="brand">ITCG Solutions Registration Portal</div>
+                
+            </div>
+        </a>
+        <div class="nav-links">
+            <a href="https://www.itcgindia.com" target="_blank">Home</a>
+            <a href="/login" class="active">Login</a>
+            <a href="/signup">Register</a>
+        </div>
+    </nav>
+    <main class="main">
+        <div class="auth-wrapper">
+            <div class="page-intro">
+                <h2>Welcome Back</h2>
+                <p>Sign in to access your vendor registration portal</p>
+                <div class="cyan-line"></div>
+            </div>
+            <div class="steps">
+                <div class="step-item">
+                    <div class="step-circle done"><i class="fas fa-check" style="font-size:11px"></i></div>
+                    <div class="step-label">Sign Up</div>
+                </div>
+                <div class="step-line done"></div>
+                <div class="step-item">
+                    <div class="step-circle active" id="step2">2</div>
+                    <div class="step-label active">Login</div>
+                </div>
+                <div class="step-line" id="line2"></div>
+                <div class="step-item">
+                    <div class="step-circle" id="step3">3</div>
+                    <div class="step-label">Register</div>
+                </div>
+            </div>
+            <div class="auth-card">
+                <div class="card-header">
+                    <h3 id="cardTitle">Sign In to Your Account</h3>
+                    <p id="cardSubtitle">Enter your email to receive a one-time login code</p>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-error" id="errorAlert"><i class="fas fa-exclamation-circle"></i><span></span></div>
+                    <div class="alert alert-success" id="successAlert"><i class="fas fa-check-circle"></i><span></span></div>
+                    <div class="alert alert-info" id="infoAlert"><i class="fas fa-info-circle"></i><span></span></div>
+                    <!-- Email field -->
+                    <div id="emailField">
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <div class="input-wrap">
+                                <i class="fas fa-envelope"></i>
+                                <input type="email" id="email" placeholder="Enter your registered email" required>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" id="sendOtpBtn" onclick="sendOTP()">
+                            <div class="btn-loader" id="sendOtpLoader"></div>
+                            <span>OTP</span>
+                            <i class="fas fa-paper-plane" id="sendArrow"></i>
+                        </button>
+                    </div>
+                    <!-- OTP section -->
+                    <div class="otp-section" id="otpSection">
+                        <div class="otp-info">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Login code sent to <strong id="otpEmail" style="color:var(--cyan)"></strong></span>
+                        </div>
+                        <div class="form-group">
+                            <label>Login Code</label>
+                            <div class="otp-boxes">
+                                <input class="otp-box" type="text" maxlength="1" inputmode="numeric">
+                                <input class="otp-box" type="text" maxlength="1" inputmode="numeric">
+                                <input class="otp-box" type="text" maxlength="1" inputmode="numeric">
+                                <input class="otp-box" type="text" maxlength="1" inputmode="numeric">
+                                <input class="otp-box" type="text" maxlength="1" inputmode="numeric">
+                                <input class="otp-box" type="text" maxlength="1" inputmode="numeric">
+                            </div>
+                            <div class="timer-row">
+                                <div class="timer-badge" id="timerBadge"><i class="fas fa-clock"></i> Expires in <strong id="timerVal" style="margin-left:4px">10:00</strong></div>
+                                <button class="resend-link" id="resendLink" onclick="resendOtp()">Resend code</button>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" id="verifyBtn" onclick="verifyOTP()">
+                            <div class="btn-loader" id="verifyLoader"></div>
+                            <span>Verify & Sign In</span>
+                        </button>
+                        <button class="btn btn-secondary" onclick="resetToEmail()">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                    </div>
+                </div>
+                <div class="card-footer">Don't have an account? <a href="/signup">Create one here</a></div>
+            </div>
+        </div>
+    </main>
+    <footer class="site-footer">
+        &copy; 2026 ITCG Solutions Pvt. Ltd. All rights reserved.
+        <a href="#">Privacy Policy</a><a href="#">Terms of Service</a>
+    </footer>
+    <script>
+        let timerInterval, timeLeft = 600;
+        document.querySelectorAll('.otp-box').forEach((box, i, boxes) => {
+            box.addEventListener('input', e => {
+                const v = e.target.value.replace(/\D/g,''); e.target.value=v;
+                if (v && i<5) boxes[i+1].focus();
+            });
+            box.addEventListener('keydown', e => {
+                if (e.key==='Backspace' && !box.value && i>0) boxes[i-1].focus();
+                if (e.key==='Enter') verifyOTP();
+            });
+            box.addEventListener('paste', e => {
+                e.preventDefault();
+                const paste=(e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'').slice(0,6);
+                [...paste].forEach((c,j)=>{ if(boxes[j]) boxes[j].value=c; });
+                const idx=Math.min(paste.length,5);
+                if(boxes[idx]) boxes[idx].focus();
+            });
+        });
+        function getOTP() { return [...document.querySelectorAll('.otp-box')].map(b=>b.value).join(''); }
+        function showAlert(type, msg) {
+            ['errorAlert','successAlert','infoAlert'].forEach(id=>document.getElementById(id).classList.remove('show'));
+            const map={error:'errorAlert',success:'successAlert',info:'infoAlert'};
+            const el=document.getElementById(map[type]);
+            el.querySelector('span').textContent=msg; el.classList.add('show');
+            if(type!=='success') setTimeout(()=>el.classList.remove('show'),6000);
+        }
+        function startTimer() {
+            timeLeft=600; document.getElementById('resendLink').classList.remove('show');
+            if(timerInterval) clearInterval(timerInterval);
+            timerInterval=setInterval(()=>{
+                timeLeft--;
+                const m=Math.floor(timeLeft/60), s=timeLeft%60;
+                document.getElementById('timerVal').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+                if(timeLeft<=60) document.getElementById('timerBadge').classList.add('urgent');
+                else document.getElementById('timerBadge').classList.remove('urgent');
+                if(timeLeft<=0){ clearInterval(timerInterval); document.getElementById('resendLink').classList.add('show'); showAlert('error','Code expired. Please request a new one.'); }
+            },1000);
+        }
+        function resetToEmail() {
+            document.getElementById('emailField').style.display='block';
+            document.getElementById('otpSection').classList.remove('show');
+            document.getElementById('cardTitle').textContent='Sign In to Your Account';
+            document.getElementById('cardSubtitle').textContent='Enter your email to receive a one-time login code';
+            document.getElementById('step2').className='step-circle active';
+            document.getElementById('line2').classList.remove('done');
+            if(timerInterval) clearInterval(timerInterval);
+            document.querySelectorAll('.otp-box').forEach(b=>b.value='');
+        }
+        async function sendOTP() {
+            const email=document.getElementById('email').value.trim();
+            if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ showAlert('error','Please enter a valid email address'); return; }
+            const btn=document.getElementById('sendOtpBtn'); btn.disabled=true;
+            document.getElementById('sendOtpLoader').style.display='block';
+            document.getElementById('sendArrow').style.display='none';
+            try {
+                const res=await fetch('/api/login/send-otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+                const data=await res.json();
+                if(data.success){
+                    document.getElementById('emailField').style.display='none';
+                    document.getElementById('otpSection').classList.add('show');
+                    document.getElementById('otpEmail').textContent=email;
+                    document.getElementById('cardTitle').textContent='Enter Your Login Code';
+                    document.getElementById('cardSubtitle').textContent='Check your email for the 6-digit code';
+                    document.getElementById('line2').classList.add('done');
+                    startTimer();
+                    setTimeout(()=>document.querySelectorAll('.otp-box')[0].focus(),100);
+                    showAlert('info','Login code sent to '+email);
+                } else { showAlert('error',data.error||'Failed to send login code'); }
+            } catch { showAlert('error','Network error. Please try again.'); }
+            finally { btn.disabled=false; document.getElementById('sendOtpLoader').style.display='none'; document.getElementById('sendArrow').style.display='inline'; }
+        }
+        async function verifyOTP() {
+            const otp=getOTP();
+            if(otp.length!==6){ showAlert('error','Please enter the complete 6-digit code'); return; }
+            const btn=document.getElementById('verifyBtn'); btn.disabled=true;
+            document.getElementById('verifyLoader').style.display='block';
+            try {
+                const res=await fetch('/api/login/verify-otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({otp})});
+                const data=await res.json();
+                if(data.success){
+                    document.getElementById('step3').className='step-circle active';
+                    showAlert('success','Login successful! Redirecting...');
+                    clearInterval(timerInterval);
+                    setTimeout(()=>window.location.href='/registration',2000);
+                } else {
+                    showAlert('error',data.error||'Invalid login code');
+                    document.querySelectorAll('.otp-box').forEach(b=>{b.value='';b.style.borderColor='rgba(255,92,106,0.6)';});
+                    setTimeout(()=>document.querySelectorAll('.otp-box').forEach(b=>b.style.borderColor=''),1500);
+                    document.querySelectorAll('.otp-box')[0].focus();
+                }
+            } catch { showAlert('error','Network error. Please try again.'); }
+            finally { btn.disabled=false; document.getElementById('verifyLoader').style.display='none'; }
+        }
+        async function resendOtp() {
+            const email=document.getElementById('email').value.trim();
+            try {
+                const res=await fetch('/api/login/send-otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+                const data=await res.json();
+                if(data.success){ startTimer(); showAlert('info','New code sent to '+email); document.querySelectorAll('.otp-box').forEach(b=>b.value=''); }
+                else showAlert('error',data.error||'Failed to resend code');
+            } catch { showAlert('error','Network error'); }
+        }
+    </script>
+</body>
+</html>
