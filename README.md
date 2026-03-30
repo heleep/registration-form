@@ -1,4 +1,4 @@
-# Vendor Registration Portal
+# Vendor Registration Portal otp based system
 
 ## 📌 Project Overview
 
