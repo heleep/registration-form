@@ -16,8 +16,8 @@ app.secret_key = 'your-secret-key-here-change-this-in-production'
 db_config = {
     'host': 'localhost',
     'user': 'root',
-    'password': 'helee8780@31',  # Replace with your MySQL password
-    'database': 'itcg_registration2'
+    'password': '',  # Replace with your MySQL password
+    'database': ''
 }
 
 # Email Configuration (Update with your email settings)
